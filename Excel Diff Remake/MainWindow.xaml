@@ -9,6 +9,17 @@
         Height="550" Width="800"
         WindowStartupLocation="CenterScreen">
 
+    <Window.Resources>
+        <Style x:Key="BoldHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="BoldCellStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+    </Window.Resources>
+
     <DockPanel Margin="10">
         <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
             <Grid.RowDefinitions>
@@ -60,11 +71,24 @@
         </Grid>
 
         <DataGrid AutoGenerateColumns="True"
-              IsReadOnly="True"
-              EnableRowVirtualization="True"
-              EnableColumnVirtualization="True"
-              VirtualizingPanel.IsVirtualizing="True"
-              VirtualizingPanel.VirtualizationMode="Recycling"
-              x:Name="dataGridMain"/>
+                IsReadOnly="True"
+                EnableRowVirtualization="True"
+                EnableColumnVirtualization="True"
+                VirtualizingPanel.IsVirtualizing="True"
+                VirtualizingPanel.VirtualizationMode="Recycling"
+                ColumnWidth="Auto"
+                MinColumnWidth="50"
+                CanUserSortColumns="False"
+                CanUserResizeColumns="False"
+                CanUserResizeRows="False"
+                CanUserReorderColumns="False"
+                SelectionUnit="Cell"
+                SelectionMode="Single"
+                IsTabStop="False"
+                Focusable="False"
+                x:Name="dataGridMain">
+
+            
+        </DataGrid>
     </DockPanel>
 </Window>

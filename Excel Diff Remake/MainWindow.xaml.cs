@@ -97,11 +97,11 @@ namespace Excel_Diff_Remake
                 }
 
                 dataGridMain.Items.Clear(); 
-                dataGridMain.Columns.Clear(); 
+                dataGridMain.Columns.Clear();
 
-                dataGridMain.Columns.Add(new DataGridTextColumn() { Header = "Cell (with difference)", Binding = new Binding("Cell") });
-                dataGridMain.Columns.Add(new DataGridTextColumn() { Header = "File 1", Binding = new Binding("Value1") });
-                dataGridMain.Columns.Add(new DataGridTextColumn() { Header = "File 2", Binding = new Binding("Value2") });
+                dataGridMain.Columns.Add(new DataGridTextColumn() { Header = "Cell (with difference)", Binding = new Binding("Cell")});
+                dataGridMain.Columns.Add(new DataGridTextColumn() { Header = "File 1", Binding = new Binding("Value1")});
+                dataGridMain.Columns.Add(new DataGridTextColumn() { Header = "File 2", Binding = new Binding("Value2")});
 
                 progressBar1.Maximum = diffs.Count;
                 progressBar1.Value = 0;
@@ -166,7 +166,6 @@ namespace Excel_Diff_Remake
             return differences;
         }
 
-
         private async void CompareEverything_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(filePath1) || string.IsNullOrWhiteSpace(filePath2))
@@ -207,12 +206,28 @@ namespace Excel_Diff_Remake
                 dataGridMain.Items.Clear();
                 dataGridMain.Columns.Clear();
 
-                dataGridMain.Columns.Add(new DataGridTextColumn() { Header = "", Binding = new Binding("RowNum"), IsReadOnly = true });
+                dataGridMain.Columns.Add(new DataGridTextColumn()
+                {
+                    Header = "",
+                    Binding = new Binding("[RowNum]"),
+                    IsReadOnly = true,
+                    ElementStyle = (Style)this.FindResource("BoldCellStyle")
+                });
+
                 int maxCol = result.Count > 0 ? result[0].Count : 0;
 
                 for (int col = 1; col <= maxCol; col++)
                 {
-                    dataGridMain.Columns.Add(new DataGridTextColumn() { Header = ColumnNumberToLetter(col), Binding = new Binding($"Column{col}") });
+                    string columnKey = $"Column{col}";
+
+                    DataGridTextColumn newCol = new DataGridTextColumn();
+                    newCol.Header = ColumnNumberToLetter(col);
+
+                    newCol.Binding = new Binding($"[{columnKey}]");
+
+                    newCol.HeaderStyle = (Style)this.FindResource("BoldHeaderStyle");
+
+                    dataGridMain.Columns.Add(newCol);
                 }
 
                 progressBar1.Maximum = result.Count;
