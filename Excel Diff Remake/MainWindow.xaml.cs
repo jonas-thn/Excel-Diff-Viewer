@@ -79,14 +79,32 @@ namespace Excel_Diff_Remake
 
             try
             {
+                int maxRowFinal;
+
+                using (ExcelPackage packageA = new ExcelPackage(new FileInfo(filePath1)))
+                using (ExcelPackage packageB = new ExcelPackage(new FileInfo(filePath2)))
+                {
+                    maxRowFinal = Math.Max(packageA.Workbook.Worksheets[0].Dimension?.End?.Row ?? 0,
+                                           packageB.Workbook.Worksheets[0].Dimension?.End?.Row ?? 0);
+                }
+
                 compareEverythingButton.IsEnabled = false;
                 compareDifferenceButton.IsEnabled = false;
                 file1Button.IsEnabled = false;
                 file2Button.IsEnabled = false;
 
+                int totalSteps = maxRowFinal * 2;
+                progressBar1.Maximum = totalSteps;
+                progressBar1.Value = 0;
+
+                var progressHandler = new Progress<int>(rowsLoaded =>
+                {
+                    progressBar1.Value = rowsLoaded;
+                });
+
                 List<(string cell, string valueA, string valueB)> diffs = await Task.Run(() =>
                 {
-                    return CompareFilesLogic();
+                    return CompareFilesLogic(progressHandler);
                 });
 
                 if (diffs.Count > MAX_CELLS)
@@ -99,6 +117,11 @@ namespace Excel_Diff_Remake
                     return;
                 }
 
+                int uiStartValue = maxRowFinal;
+                int finalMaximum = uiStartValue + diffs.Count; 
+
+                progressBar1.Maximum = finalMaximum;
+
                 dataGridMain.Items.Clear(); 
                 dataGridMain.Columns.Clear();
 
@@ -106,19 +129,18 @@ namespace Excel_Diff_Remake
                 dataGridMain.Columns.Add(new DataGridTextColumn() { Header = "File 1", Binding = new Binding("Value1")});
                 dataGridMain.Columns.Add(new DataGridTextColumn() { Header = "File 2", Binding = new Binding("Value2")});
 
-                progressBar1.Maximum = diffs.Count;
-                progressBar1.Value = 0;
-
                 int i = 0;
                 foreach (var diff in diffs)
                 {
                     dataGridMain.Items.Add(new { Cell = diff.cell, Value1 = diff.valueA, Value2 = diff.valueB });
 
-                    progressBar1.Value = Math.Min(i + 1, progressBar1.Maximum);
                     i++;
+                    progressBar1.Value = uiStartValue + i;
 
                     await Task.Yield();
                 }
+
+                progressBar1.Value = progressBar1.Maximum;
 
                 compareEverythingButton.IsEnabled = true;
                 compareDifferenceButton.IsEnabled = true;
@@ -139,7 +161,7 @@ namespace Excel_Diff_Remake
             }
         }
 
-        private List<(string, string, string)> CompareFilesLogic()
+        private List<(string, string, string)> CompareFilesLogic(IProgress<int> progress)
         {
             List<(string, string, string)> differences = new List<(string, string, string)>();
             using (ExcelPackage packageA = new ExcelPackage(new FileInfo(filePath1)))
@@ -150,6 +172,8 @@ namespace Excel_Diff_Remake
 
                 int maxRow = Math.Max(wsA.Dimension.End.Row, wsB.Dimension.End.Row);
                 int maxCol = Math.Max(wsA.Dimension.End.Column, wsB.Dimension.End.Column);
+
+                int rowsProcessed = 0;
 
                 for (int row = 1; row <= maxRow; row++)
                 {
@@ -164,6 +188,9 @@ namespace Excel_Diff_Remake
                             differences.Add((cell, valueA, valueB));
                         }
                     }
+
+                    rowsProcessed++;
+                    progress.Report(rowsProcessed);
                 }
             }
             return differences;
@@ -179,6 +206,8 @@ namespace Excel_Diff_Remake
 
             try
             {
+                int maxRowFinal;
+
                 compareEverythingButton.IsEnabled = false;
                 compareDifferenceButton.IsEnabled = false;
                 file1Button.IsEnabled = false;
@@ -195,10 +224,14 @@ namespace Excel_Diff_Remake
                     int maxRowTempB = wsB.Dimension?.End?.Row ?? 0;
                     int maxColTempB = wsB.Dimension?.End?.Column ?? 0;
 
-                    int maxRowFinal = Math.Max(maxRowTemp, maxRowTempB);
+                    maxRowFinal = Math.Max(maxRowTemp, maxRowTempB);
                     int maxColFinal = Math.Max(maxColTemp, maxColTempB);
 
                     long totalCells = (long)maxRowFinal * maxColFinal;
+
+                    int totalSteps = maxRowFinal * 2;
+                    progressBar1.Maximum = totalSteps;
+                    progressBar1.Value = 0;
 
                     if (totalCells > MAX_CELLS)
                     {
@@ -214,10 +247,18 @@ namespace Excel_Diff_Remake
                     }
                 }
 
+                var progressHandler = new Progress<int>(rowsLoaded =>
+                {
+                    progressBar1.Value = rowsLoaded;
+                });
+
                 List<List<string>> result = await Task.Run(() =>
                 {
-                    return ShowEverythingLogic();
+                    return ShowEverythingLogic(progressHandler);
                 });
+
+                int uiStartValue = maxRowFinal;
+                progressBar1.Value = uiStartValue;
 
                 dataGridMain.Items.Clear();
                 dataGridMain.Columns.Clear();
@@ -246,9 +287,6 @@ namespace Excel_Diff_Remake
                     dataGridMain.Columns.Add(newCol);
                 }
 
-                progressBar1.Maximum = result.Count;
-                progressBar1.Value = 0;
-
                 for (int row = 0; row < result.Count; row++)
                 {
                     Dictionary<string, object> rowData = new Dictionary<string, object>();
@@ -261,7 +299,7 @@ namespace Excel_Diff_Remake
 
                     dataGridMain.Items.Add(rowData);
 
-                    progressBar1.Value = row + 1;
+                    progressBar1.Value = uiStartValue + (row + 1);
 
                     if (row % 50 == 0)
                     {
@@ -288,7 +326,7 @@ namespace Excel_Diff_Remake
             }
         }
 
-        private List<List<string>> ShowEverythingLogic()
+        private List<List<string>> ShowEverythingLogic(IProgress<int> progress)
         {
             List<List<string>> result = new List<List<string>>();
             using (ExcelPackage packageA = new ExcelPackage(new FileInfo(filePath1)))
@@ -299,6 +337,9 @@ namespace Excel_Diff_Remake
 
                 int maxRow = Math.Max(wsA.Dimension.End.Row, wsB.Dimension.End.Row);
                 int maxCol = Math.Max(wsA.Dimension.End.Column, wsB.Dimension.End.Column);
+
+                int totalRowsToProcess = maxRow;
+                int rowsProcessed = 0;
 
                 for (int row = 1; row <= maxRow; row++)
                 {
@@ -312,6 +353,9 @@ namespace Excel_Diff_Remake
                         rowValues.Add(cellText);
                     }
                     result.Add(rowValues);
+
+                    rowsProcessed++;
+                    progress.Report(rowsProcessed);
                 }
             }
             return result;
