@@ -48,6 +48,8 @@ namespace Excel_Diff_Remake
 
                 progressBar1.Value = 0;
             }
+
+            this.Activate();
         }
 
         private void File2_Click(object sender, RoutedEventArgs e)
@@ -66,6 +68,8 @@ namespace Excel_Diff_Remake
 
                 progressBar1.Value = 0;
             }
+
+            this.Activate();
         }
 
         private async void ShowDifference_Click(object sender, RoutedEventArgs e)
@@ -251,7 +255,7 @@ namespace Excel_Diff_Remake
                     progressBar1.Value = rowsLoaded;
                 });
 
-                List<List<string>> result = await Task.Run(() =>
+                List<List<(string, bool)>> result = await Task.Run(() =>
                 {
                     return ShowEverythingLogic(progressHandler);
                 });
@@ -275,34 +279,42 @@ namespace Excel_Diff_Remake
                 for (int col = 1; col <= maxCol; col++)
                 {
                     string columnKey = $"Column{col}";
+                    string diffKey = $"Diff{col}";
 
                     DataGridTextColumn newCol = new DataGridTextColumn();
                     newCol.Header = ColumnNumberToLetter(col);
-
                     newCol.Binding = new Binding($"[{columnKey}]");
-
                     newCol.HeaderStyle = (Style)this.FindResource("BoldHeaderStyle");
+
+                    newCol.CellStyle = new Style(typeof(DataGridCell))
+                    {
+                        BasedOn = (Style)this.FindResource("DiffCellStyle"),
+                        Setters =
+                        {
+                            new Setter(DataGridCell.TagProperty, new Binding($"[{diffKey}]"))
+                        }
+                    };
 
                     dataGridMain.Columns.Add(newCol);
                 }
 
                 for (int row = 0; row < result.Count; row++)
                 {
-                    Dictionary<string, object> rowData = new Dictionary<string, object>();
+                    var rowData = new Dictionary<string, object>();
                     rowData["RowNum"] = (row + 1).ToString();
 
                     for (int col = 0; col < result[row].Count; col++)
                     {
-                        rowData[$"Column{col + 1}"] = result[row][col];
+                        rowData[$"Column{col + 1}"] = result[row][col].Item1;
+                        rowData[$"Diff{col + 1}"] = result[row][col].Item2;  
                     }
 
                     dataGridMain.Items.Add(rowData);
-
                     progressBar1.Value = uiStartValue + (row + 1);
 
                     if (row % 50 == 0)
-                    {
-                        await Task.Yield();
+                    { 
+                        await Task.Yield(); 
                     }
                 }
 
@@ -325,9 +337,10 @@ namespace Excel_Diff_Remake
             }
         }
 
-        private List<List<string>> ShowEverythingLogic(IProgress<int> progress)
+        private List<List<(string Value, bool isDifferent)>> ShowEverythingLogic(IProgress<int> progress)
         {
-            List<List<string>> result = new List<List<string>>();
+            List<List<(string Value, bool isDifferent)>> result = new List<List<(string Value, bool isDifferent)>>();
+
             using (ExcelPackage packageA = new ExcelPackage(new FileInfo(filePath1)))
             using (ExcelPackage packageB = new ExcelPackage(new FileInfo(filePath2)))
             {
@@ -342,17 +355,18 @@ namespace Excel_Diff_Remake
 
                 for (int row = 1; row <= maxRow; row++)
                 {
-                    List<string> rowValues = new List<string>();
+                    List<(string, bool)> rowValues = new List<(string, bool)>();
                     for (int col = 1; col <= maxCol; col++)
                     {
                         string valueA = wsA.Cells[row, col].Text == "" ? "-" : wsA.Cells[row, col].Text;
                         string valueB = wsB.Cells[row, col].Text == "" ? "-" : wsB.Cells[row, col].Text;
 
-                        string cellText = (valueA.Equals(valueB)) ? valueA : valueA + "\r\n" + valueB;
-                        rowValues.Add(cellText);
+                        bool isDifferent = !valueA.Equals(valueB);
+                        string text = isDifferent ? $"{valueA}\r\n{valueB}" : valueA;
+                        rowValues.Add((text, isDifferent));
                     }
-                    result.Add(rowValues);
 
+                    result.Add(rowValues);
                     rowsProcessed++;
                     progress.Report(rowsProcessed);
                 }
@@ -374,10 +388,8 @@ namespace Excel_Diff_Remake
 
         private void ResetTable()
         {
-            dataGridMain.Items.Clear();
+            dataGridMain.Items.Clear();  
             dataGridMain.Columns.Clear();
         }
     }
-
-    
 }

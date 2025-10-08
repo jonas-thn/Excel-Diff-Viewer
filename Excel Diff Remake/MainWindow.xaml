@@ -18,6 +18,15 @@
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
 
+        <Style x:Key="DiffCellStyle" TargetType="DataGridCell">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
+                    <Setter Property="Background" Value="LightCoral"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
     </Window.Resources>
 
     <DockPanel Margin="10">
