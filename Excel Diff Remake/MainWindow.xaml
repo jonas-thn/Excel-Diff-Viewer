@@ -5,8 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Excel_Diff_Remake"
         mc:Ignorable="d"
-        Title="MainWindow" Height="550" Width="800">
-   
+        Title="Excel Diff Viewer" 
+        Height="550" Width="800"
+        WindowStartupLocation="CenterScreen">
+
     <DockPanel Margin="10">
         <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
             <Grid.RowDefinitions>
@@ -16,25 +18,35 @@
 
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="30"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button Content="Open File 1" Grid.Row="0" Grid.Column="0" Width="100" Margin="0,0,10,5" Click="File1_Click" x:Name="file1Button"/>
+            <Button Content="Open File 1" Grid.Row="0" Grid.Column="0" 
+                    Width="100" Margin="0,0,0,5" 
+                    Click="File1_Click" x:Name="file1Button"
+                    HorizontalAlignment="Left"/>
 
-            <Button Content="Open File 2" Grid.Row="0" Grid.Column="1" Width="100" Margin="120,0,20,5" Click="File2_Click" x:Name="file2Button"/>
+            <Button Content="Open File 2" Grid.Row="0" Grid.Column="2" 
+                    Width="100" Margin="0,0,20,5" 
+                    Click="File2_Click" x:Name="file2Button"
+                    HorizontalAlignment="Left"/>
 
-            <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="4" HorizontalAlignment="Right" Margin="0,0,0,5" x:Name="compareDifferenceButton">
-                <Button Content="Show Only Difference" Width="130" Margin="0,0,10,0" Click="ShowDifference_Click"/>
+            <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="4" HorizontalAlignment="Right" Margin="0,0,0,5">
+                <Button Content="Show Only Difference" Width="130" Margin="0,0,10,0" Click="ShowDifference_Click" x:Name="compareDifferenceButton"/>
                 <Button Content="Compare Everything" Width="130" Click="CompareEverything_Click" x:Name="compareEverythingButton"/>
             </StackPanel>
 
 
-            <Label Content="..." Grid.Row="1" Grid.Column="0" Margin="0,5,10,0" HorizontalAlignment="Left" MaxWidth="250" Padding="0" x:Name="file1Label"/>
+            <Label Content="..." Grid.Row="1" Grid.Column="0" 
+                   Margin="0,5,0,0" HorizontalAlignment="Left" 
+                   Padding="0" x:Name="file1Label"/>
 
-            <Label Content="..." Grid.Row="1" Grid.Column="1" Margin="120,5,20,0" HorizontalAlignment="Left" MaxWidth="250" Padding="0" x:Name="file2Label"/>
+            <Label Content="..." Grid.Row="1" Grid.Column="2" 
+                   Margin="0,5,20,0" HorizontalAlignment="Left" 
+                   Padding="0" x:Name="file2Label"/>
 
             <ProgressBar BorderBrush="Black"
                 BorderThickness="1"
