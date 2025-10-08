@@ -28,7 +28,8 @@ namespace Excel_Diff_Remake
 
             ExcelPackage.License.SetNonCommercialPersonal("Jonas Thaun");
 
-            progressBar1.Visibility = Visibility.Collapsed;
+            progressBar1.Visibility = Visibility.Visible;
+            progressBar1.Value = 0;
         }
 
         private void File1_Click(object sender, RoutedEventArgs e)
@@ -45,7 +46,6 @@ namespace Excel_Diff_Remake
 
                 file1Label.Content = Path.GetFileName(filePath1); // only name
 
-                progressBar1.Visibility = Visibility.Visible;
                 progressBar1.Value = 0;
             }
         }
@@ -64,7 +64,6 @@ namespace Excel_Diff_Remake
 
                 file2Label.Content = Path.GetFileName(filePath2); // only name
 
-                progressBar1.Visibility = Visibility.Visible;
                 progressBar1.Value = 0;
             }
         }
@@ -377,8 +376,6 @@ namespace Excel_Diff_Remake
         {
             dataGridMain.Items.Clear();
             dataGridMain.Columns.Clear();
-
-            progressBar1.Visibility = Visibility.Collapsed;
         }
     }
 
