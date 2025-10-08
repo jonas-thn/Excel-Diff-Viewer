@@ -20,7 +20,7 @@ namespace Excel_Diff_Remake
         private string filePath1;
         private string filePath2;
 
-        const int MAX_CELLS = 100000;
+        const int MAX_CELLS = 5000000;
 
         public MainWindow()
         {
@@ -91,8 +91,11 @@ namespace Excel_Diff_Remake
 
                 if (diffs.Count > MAX_CELLS)
                 {
-                    MessageBox.Show($"Limit: The files have more than {MAX_CELLS} differences.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    Application.Current.Shutdown();
+                    MessageBox.Show($"Limit: The files have more than {MAX_CELLS} cells.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    compareEverythingButton.IsEnabled = true;
+                    compareDifferenceButton.IsEnabled = true;
+                    file1Button.IsEnabled = true;
+                    file2Button.IsEnabled = true;
                     return;
                 }
 
@@ -187,13 +190,26 @@ namespace Excel_Diff_Remake
                     ExcelWorksheet wsA = packageA.Workbook.Worksheets[0];
                     ExcelWorksheet wsB = packageB.Workbook.Worksheets[0];
 
-                    int maxRowTemp = Math.Max(wsA.Dimension.End.Row, wsB.Dimension.End.Row);
-                    int maxColTemp = Math.Max(wsA.Dimension.End.Column, wsB.Dimension.End.Column);
+                    int maxRowTemp = wsA.Dimension?.End?.Row ?? 0;
+                    int maxColTemp = wsA.Dimension?.End?.Column ?? 0;
+                    int maxRowTempB = wsB.Dimension?.End?.Row ?? 0;
+                    int maxColTempB = wsB.Dimension?.End?.Column ?? 0;
 
-                    if (maxRowTemp * maxColTemp > (MAX_CELLS / 10))
+                    int maxRowFinal = Math.Max(maxRowTemp, maxRowTempB);
+                    int maxColFinal = Math.Max(maxColTemp, maxColTempB);
+
+                    long totalCells = (long)maxRowFinal * maxColFinal;
+
+                    if (totalCells > MAX_CELLS)
                     {
+                        double limitInMillions = Math.Round((double)MAX_CELLS / 1000000, 1);
+
                         MessageBox.Show($"Limit: The files have more than {MAX_CELLS} cells.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        Application.Current.Shutdown();
+
+                        compareEverythingButton.IsEnabled = true;
+                        compareDifferenceButton.IsEnabled = true;
+                        file1Button.IsEnabled = true;
+                        file2Button.IsEnabled = true;
                         return;
                     }
                 }
